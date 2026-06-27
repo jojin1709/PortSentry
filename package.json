@@ -1,0 +1,30 @@
+{
+  "name": "portsentry",
+  "version": "1.0.0",
+  "description": "PortSentry Desktop Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "dependencies": {
+    "pidusage": "^3.0.2"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.portsentry.app",
+    "win": {
+      "target": "portable",
+      "icon": "icon.png"
+    },
+    "files": [
+      "main.js",
+      "server.js",
+      "portsentry.html",
+      "icon.png"
+    ]
+  }
+}

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PortSentry</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #161b27;
+    --card: #1c2333;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.15);
+    --text: #e8eaf0;
+    --muted: #7a8299;
+    --accent: #4f7ef8;
+    --accent-glow: rgba(79,126,248,0.15);
+    --danger: #f85c5c;
+    --danger-bg: rgba(248,92,92,0.12);
+    --success: #3ecf8e;
+    --success-bg: rgba(62,207,142,0.1);
+    --warning: #f5a623;
+    --warning-bg: rgba(245,166,35,0.1);
+    --radius: 8px;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+  [data-theme="light"] {
+    --bg: #f3f4f8;
+    --surface: #ffffff;
+    --card: #f8f9fc;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.15);
+    --text: #1a1d2e;
+    --muted: #6b7280;
+    --accent-glow: rgba(79,126,248,0.08);
+    --danger-bg: rgba(248,92,92,0.08);
+    --success-bg: rgba(62,207,142,0.08);
+    --warning-bg: rgba(245,166,35,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+  .logo-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+    animation: pulse 2s infinite;
+  }
+  .logo-dot.offline { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .btn {
+    padding: 6px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: var(--sans);
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: var(--border); }
+  .btn-danger {
+    border-color: rgba(248,92,92,0.4);
+    color: var(--danger);
+  }
+  .btn-danger:hover { background: var(--danger-bg); }
+  .btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 6px; }
+  main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 600; letter-spacing: -1px; }
+  .stat-value.accent { color: var(--accent); }
+  .stat-value.danger { color: var(--danger); }
+  .stat-value.success { color: var(--success); }
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px 8px 34px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: var(--sans);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--muted); }
+  .filter-tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 3px; }
+  .tab {
+    padding: 4px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+    border: none;
+    background: transparent;
+    font-family: var(--sans);
+  }
+  .tab.active { background: var(--accent); color: #fff; }
+  .services-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--card); }
+  tbody tr.killed { opacity: 0.4; }
+  td { padding: 12px 16px; vertical-align: middle; }
+  .port-badge {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-glow);
+    border: 1px solid rgba(79,126,248,0.3);
+    border-radius: 5px;
+    padding: 2px 8px;
+    min-width: 60px;
+    justify-content: center;
+  }
+  .proc-name {
+    font-weight: 500;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+  .proc-cmd {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    max-width: 360px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pid-tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 7px;
+  }
+  .category-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+  .cat-dev { background: var(--warning-bg); color: var(--warning); }
+  .cat-db { background: var(--success-bg); color: var(--success); }
+  .cat-web { background: var(--accent-glow); color: var(--accent); }
+  .cat-sys { background: var(--border); color: var(--muted); }
+  .cat-other { background: var(--border); color: var(--muted); }
+  .actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .kill-btn {
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(248,92,92,0.3);
+    background: transparent;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--sans);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.15s;
+  }
+  .kill-btn:hover { background: var(--danger-bg); }
+  .kill-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .open-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--sans);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s;
+  }
+  .open-btn:hover { color: var(--text); border-color: var(--border-strong); background: var(--border); }
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-state h3 { font-size: 15px; margin-bottom: 6px; color: var(--text); }
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+  }
+  .toast {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: 13px;
+    max-width: 300px;
+    animation: slideIn 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast.success { border-color: rgba(62,207,142,0.4); }
+  .toast.error { border-color: rgba(248,92,92,0.4); color: var(--danger); }
+  @keyframes slideIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .no-backend {
+    margin: 40px auto;
+    max-width: 500px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+  }
+  .no-backend h2 { font-size: 18px; margin-bottom: 8px; }
+  .no-backend p { color: var(--muted); line-height: 1.6; margin-bottom: 16px; font-size: 13px; }
+  .code-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--success);
+    margin-bottom: 10px;
+  }
+  .checkbox-wrap { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; }
+  input[type="checkbox"] { cursor: pointer; accent-color: var(--accent); }
+  .col-w-port { width: 90px; }
+  .col-w-proc { }
+  .col-w-pid { width: 90px; }
+  .col-w-cat { width: 90px; }
+  .col-w-usage { width: 110px; }
+  .col-w-act { width: 130px; }
+  @media (max-width: 640px) {
+    .proc-cmd { display: none; }
+    .col-w-pid { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" style="display: flex; align-items: center; gap: 8px;">
+    <img src="icon.png" alt="PortSentry Logo" style="width: 24px; height: 24px; border-radius: 4px; object-fit: cover;" />
+    PortSentry
+    <div class="logo-dot" id="connDot" style="margin-left: 4px;"></div>
+  </div>
+  <div class="header-right">
+    <label class="checkbox-wrap">
+      <input type="checkbox" id="autoRefresh" checked />
+      Auto-refresh
+    </label>
+    <button class="btn" onclick="loadServices()" title="Refresh">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+      Refresh
+    </button>
+    <button class="btn" onclick="toggleTheme()" title="Toggle theme">
+      <svg id="themeIcon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div id="noBackend" style="display:none">
+    <div class="no-backend">
+      <h2>Backend not running</h2>
+      <p>PortSentry needs a small local server to read your system's ports. Start it with:</p>
+      <div class="code-block">node server.js</div>
+      <p style="margin:0">Keep that terminal open, then refresh this page.</p>
+    </div>
+  </div>
+
+  <div id="appContent" style="display:none">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Listening ports</div>
+        <div class="stat-value accent" id="statTotal">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Dev servers</div>
+        <div class="stat-value" style="color:var(--warning)" id="statDev">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Databases</div>
+        <div class="stat-value success" id="statDb">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Killed this session</div>
+        <div class="stat-value danger" id="statKilled">0</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search" placeholder="Filter by port, name, or PID..." oninput="renderTable()" />
+      </div>
+      <div class="filter-tabs">
+        <button class="tab active" data-cat="all" onclick="setFilter('all',this)">All</button>
+        <button class="tab" data-cat="dev" onclick="setFilter('dev',this)">Dev</button>
+        <button class="tab" data-cat="db" onclick="setFilter('db',this)">DB</button>
+        <button class="tab" data-cat="web" onclick="setFilter('web',this)">Web</button>
+        <button class="tab" data-cat="sys" onclick="setFilter('sys',this)">System</button>
+      </div>
+      <button class="btn btn-danger" onclick="killAll()" id="killAllBtn">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Kill all visible
+      </button>
+    </div>
+
+    <div class="status-bar">
+      <span id="statusText">Loading...</span>
+    </div>
+
+    <div class="services-table">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-w-port">Port</th>
+            <th class="col-w-proc">Process</th>
+            <th class="col-w-pid">PID</th>
+            <th class="col-w-cat">Type</th>
+            <th class="col-w-usage">Usage</th>
+            <th class="col-w-act">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty-state" style="display:none">
+        <div class="icon">📡</div>
+        <h3>No services found</h3>
+        <p>No listening ports match your filter.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast-container" id="toasts"></div>
+
+<script>
+const API = "http://127.0.0.1:9977";
+let allServices = [];
+let killedPids = new Set();
+let killCount = 0;
+let activeFilter = "all";
+let refreshTimer = null;
+let previousPorts = new Set();
+
+// Request notification permission
+if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+  Notification.requestPermission();
+}
+
+const DEV_PORTS = new Set([3000,3001,3002,3003,3004,3005,4000,4001,4200,4321,5000,5001,5173,5174,6006,7000,7001,8000,8001,8080,8081,8082,8083,8084,8085,8086,8087,8088,8443,8888,9000,9001,9090,9200,9229,3100,4400]);
+const DB_PORTS = new Set([1433,1521,3306,5432,5433,6379,7687,8529,9042,27017,27018,27019,28017,50000,6380,6381]);
+const WEB_PORTS = new Set([80,443,8080,8443,8888]);
+const DB_NAMES = /mongo|mysql|postgres|redis|elastic|kafka|rabbit|cassandra|sqlite|mariadb|influx|clickhouse|neo4j/i;
+const DEV_NAMES = /node|python|deno|bun|ruby|php|java|webpack|vite|next|nuxt|react|angular|vue|parcel|rollup|esbuild|cargo|go|flask|django|rails|spring|dotnet/i;
+
+function categorize(s) {
+  if (DB_PORTS.has(s.port) || DB_NAMES.test(s.name) || DB_NAMES.test(s.cmd)) return "db";
+  if (DEV_PORTS.has(s.port) || DEV_NAMES.test(s.name) || DEV_NAMES.test(s.cmd)) return "dev";
+  if (WEB_PORTS.has(s.port)) return "web";
+  if (s.port < 1024) return "sys";
+  return "other";
+}
+
+async function loadServices() {
+  try {
+    const res = await fetch(`${API}/services`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    allServices = data.services;
+    
+    // Check for new ports and trigger notifications
+    const activePortsList = data.services.map(s => s.port);
+    if (previousPorts.size > 0) {
+      for (const s of data.services) {
+        if (!previousPorts.has(s.port)) {
+          if (Notification.permission === "granted") {
+            new Notification("New Service Active", {
+              body: `Port ${s.port} is now listening (${s.name})`,
+              icon: 'icon.png'
+            });
+          }
+        }
+      }
+    }
+    previousPorts = new Set(activePortsList);
+
+    document.getElementById("connDot").className = "logo-dot";
+    document.getElementById("noBackend").style.display = "none";
+    document.getElementById("appContent").style.display = "block";
+    updateStats();
+    renderTable();
+    document.getElementById("statusText").textContent = `Last updated ${new Date().toLocaleTimeString()} · ${allServices.length} port(s) found`;
+  } catch {
+    document.getElementById("connDot").className = "logo-dot offline";
+    document.getElementById("noBackend").style.display = "block";
+    document.getElementById("appContent").style.display = "none";
+  }
+}
+
+function updateStats() {
+  document.getElementById("statTotal").textContent = allServices.length;
+  document.getElementById("statDev").textContent = allServices.filter(s => categorize(s) === "dev").length;
+  document.getElementById("statDb").textContent = allServices.filter(s => categorize(s) === "db").length;
+  document.getElementById("statKilled").textContent = killCount;
+}
+
+function setFilter(cat, el) {
+  activeFilter = cat;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  renderTable();
+}
+
+function getFiltered() {
+  const q = document.getElementById("search").value.toLowerCase();
+  return allServices.filter(s => {
+    if (killedPids.has(s.pid)) return false;
+    if (activeFilter !== "all" && categorize(s) !== activeFilter) return false;
+    if (q && !String(s.port).includes(q) && !s.name.toLowerCase().includes(q) && !String(s.pid).includes(q) && !s.cmd.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderTable() {
+  const rows = getFiltered();
+  const tbody = document.getElementById("tableBody");
+  const empty = document.getElementById("emptyState");
+  if (rows.length === 0) {
+    tbody.innerHTML = "";
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+  tbody.innerHTML = rows.map(s => {
+    const cat = categorize(s);
+    const catLabel = {dev:"Dev",db:"Database",web:"Web",sys:"System",other:"Other"}[cat];
+    const catClass = `cat-${cat}`;
+    const isLocal = ["dev","web"].includes(cat);
+    return `<tr id="row-${s.pid}">
+      <td><span class="port-badge">${s.port}</span></td>
+      <td>
+        <div class="proc-name">${esc(s.name || "unknown")}</div>
+        ${s.cmd ? `<div class="proc-cmd" title="${esc(s.cmd)}">${esc(s.cmd)}</div>` : ""}
+      </td>
+      <td><span class="pid-tag">${s.pid || "—"}</span></td>
+      <td><span class="category-badge ${catClass}">${catLabel}</span></td>
+      <td>
+        <div style="font-family: var(--mono); font-size: 12px; font-weight: 500;">
+          <span style="color: var(--warning);">${formatCpu(s.cpu)}</span> <span style="color: var(--muted); font-size: 10px;">CPU</span>
+        </div>
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 2px;">
+          ${formatMem(s.mem)}
+        </div>
+      </td>
+      <td>
+        <div class="actions">
+          ${isLocal ? `<button class="open-btn" onclick="openBrowser(${s.port})" title="Open in browser">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </button>
+          <button class="open-btn" onclick="navigator.clipboard.writeText('http://localhost:${s.port}'); toast('Copied URL to clipboard', 'success')" title="Copy URL">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>` : ""}
+          <button class="kill-btn" onclick="killService(${s.pid}, this)" ${!s.pid ? "disabled" : ""} title="Kill process">
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Kill
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function formatMem(bytes) {
+  if (!bytes) return "—";
+  if (bytes > 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB";
+  if (bytes > 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(0) + " MB";
+  if (bytes > 1024) return (bytes / 1024).toFixed(0) + " KB";
+  return bytes + " B";
+}
+
+function formatCpu(cpu) {
+  if (cpu === undefined || cpu === null) return "—";
+  return cpu.toFixed(1) + "%";
+}
+
+async function killService(pid, btn) {
+  if (!pid) return;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Killing...`;
+  try {
+    const res = await fetch(`${API}/kill`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({pid})
+    });
+    const data = await res.json();
+    if (data.ok) {
+      killedPids.add(pid);
+      killCount++;
+      const row = document.getElementById(`row-${pid}`);
+      if (row) { row.style.opacity = "0.2"; row.style.transition = "opacity 0.3s"; setTimeout(()=>row.remove(), 300); }
+      toast(`Process ${pid} killed`, "success");
+      updateStats();
+    } else {
+      toast(data.msg || "Failed to kill", "error");
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Kill`;
+    }
+  } catch {
+    toast("Could not reach backend", "error");
+    btn.disabled = false;
+  }
+}
+
+async function killAll() {
+  const rows = getFiltered();
+  if (rows.length === 0) return toast("Nothing to kill", "error");
+  if (!confirm(`Kill ${rows.length} process(es)?`)) return;
+  for (const s of rows) {
+    if (!s.pid) continue;
+    try {
+      await fetch(`${API}/kill`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pid:s.pid})});
+      killedPids.add(s.pid);
+      killCount++;
+    } catch {}
+  }
+  updateStats();
+  renderTable();
+  toast(`Killed ${rows.length} process(es)`, "success");
+}
+
+function openBrowser(port) {
+  window.open(`http://localhost:${port}`, "_blank");
+}
+
+function toast(msg, type = "success") {
+  const div = document.createElement("div");
+  div.className = `toast ${type}`;
+  div.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${type==="success"?'<polyline points="20 6 9 17 4 12"/>':`<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`}</svg>${msg}`;
+  document.getElementById("toasts").appendChild(div);
+  setTimeout(() => div.remove(), 3000);
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
+}
+
+function setupAutoRefresh() {
+  clearInterval(refreshTimer);
+  if (document.getElementById("autoRefresh").checked) {
+    refreshTimer = setInterval(loadServices, 5000);
+  }
+}
+
+document.getElementById("autoRefresh").addEventListener("change", setupAutoRefresh);
+loadServices();
+setupAutoRefresh();
+</script>
+</body>
+</html>
