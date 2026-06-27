@@ -3,6 +3,16 @@
   "version": "1.0.0",
   "description": "PortSentry Desktop Application",
   "main": "main.js",
+  "author": "JOJIN JOHN <https://www.linkedin.com/in/jojin-john/>",
+  "homepage": "https://jojin1709.github.io/PortSentry/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jojin1709/PortSentry.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jojin1709/PortSentry/issues"
+  },
+  "license": "Proprietary",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"

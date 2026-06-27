@@ -61,6 +61,15 @@ Developed with ❤️ by **JOJIN JOHN**
 
 ---
 
+## Privacy & Security
+
+PortSentry monitors network port states and local process stats strictly locally.
+*   **100% Local**: No analytics or remote telemetry. Your system data never leaves your machine.
+*   **Loopback Only**: The PortSentry server binds strictly to the loopback interface (`127.0.0.1`), blocking any external connection attempts from local networks or the internet.
+*   See [PRIVACY.md](PRIVACY.md) for full details.
+
+---
+
 ## License
 
 This project is proprietary and confidential. All rights are reserved to **JOJIN JOHN**. See [LICENSE](LICENSE) for details.

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy & Security - PortSentry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --panel: rgba(17, 24, 39, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #5f7fff;
+      --font-main: 'Plus Jakarta Sans', sans-serif;
+      --font-title: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: radial-gradient(circle at 10% 20%, rgba(95, 127, 255, 0.08) 0%, transparent 45%);
+      color: var(--text);
+      font-family: var(--font-main);
+      line-height: 1.7;
+      padding: 0;
+      margin: 0;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(11, 15, 25, 0.75);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .logo-img {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+
+    .logo-text {
+      font-family: var(--font-title);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .btn-back {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .btn-back:hover {
+      color: var(--text);
+    }
+
+    .content-wrapper {
+      max-width: 900px;
+      margin: 4rem auto;
+      padding: 0 2rem 6rem;
+    }
+
+    .title-area {
+      margin-bottom: 3rem;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    .policy-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 3rem;
+      backdrop-filter: blur(10px);
+    }
+
+    h2 {
+      font-family: var(--font-title);
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin: 2rem 0 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+
+    h2:first-of-type {
+      margin-top: 0;
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      font-size: 0.98rem;
+    }
+
+    ul {
+      margin: 0 0 1.5rem 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.98rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo-container">
+        <img src="icon.png" alt="PortSentry" class="logo-img">
+        <span class="logo-text">PortSentry</span>
+      </a>
+      <a href="index.html" class="btn-back">&larr; Back to Home</a>
+    </div>
+  </header>
+
+  <div class="content-wrapper">
+    <div class="title-area">
+      <h1>Privacy & Security Policy</h1>
+      <div class="subtitle">Understand how PortSentry handles your data and keeps your dev scope secure.</div>
+    </div>
+
+    <div class="policy-box">
+      <h2>1. 100% Local Data Processing</h2>
+      <p>PortSentry monitors your active network ports and local CPU/memory usage telemetry. <strong>None of this data is collected, stored, or transmitted online.</strong></p>
+      <ul>
+        <li><strong>No External Telemetry</strong>: PortSentry has no analytics scripts, logging servers, or usage trackers built-in.</li>
+        <li><strong>No Cloud Storage</strong>: Any data shown in the graphical dashboard resides entirely in local system RAM and is cleared immediately upon window exit.</li>
+        <li><strong>Complete Offline Capabilities</strong>: The application is designed to function fully on air-gapped developer workstations without requiring internet access.</li>
+      </ul>
+
+      <h2>2. Loopback Binding Security</h2>
+      <p>The backend telemetry endpoint built inside the application is configured to listen strictly on the loopback network address (<code>127.0.0.1</code> or <code>localhost</code>).</p>
+      <p>This binding ensures that no devices on your external Local Area Network (LAN), Wi-Fi router, or the public internet can query your process metrics or issue process termination requests to your machine.</p>
+
+      <h2>3. Process Management Boundaries</h2>
+      <p>PortSentry only terminates background processes (using Windows <code>taskkill</code> or Unix signals) when you explicitly click the <strong>Kill</strong> or <strong>Kill All</strong> buttons. The app will never automatically close or modify any running software on your machine without your direct interaction.</p>
+
+      <h2>4. Open Source Audits</h2>
+      <p>Because developer tooling handles sensitive command scopes, PortSentry is fully audit-ready. You can review the complete package definition and source code at <a href="https://github.com/jojin1709/PortSentry" target="_blank" style="color: var(--primary); text-decoration: none;">GitHub</a>.</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 PortSentry by <a href="https://www.linkedin.com/in/jojin-john/" target="_blank">JOJIN JOHN</a>. All rights reserved. Proprietary and Confidential.</p>
+  </footer>
+
+</body>
+</html>
