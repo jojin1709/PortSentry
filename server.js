@@ -205,4 +205,8 @@ server.listen(PORT, "127.0.0.1", () => {
   console.log(`  Open portsentry.html in your browser\n`);
 });
 
+server.on('error', (err) => {
+  console.error("Server error:", err.message);
+});
+
 module.exports = { getServices };

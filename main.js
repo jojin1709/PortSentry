@@ -1,12 +1,28 @@
 const { app, BrowserWindow, shell, Tray, Menu } = require('electron');
 const path = require('path');
 
+// Enforce single instance lock
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+  return; // Stop module execution immediately
+}
+
 // Run the server.js backend and import getServices
 const { getServices } = require('./server.js');
 
 let mainWindow = null;
 let tray = null;
 let isQuitting = false;
+
+// Handle second instance launch attempts
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  }
+});
 
 function createWindow() {
   // Show splash window immediately
