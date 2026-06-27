@@ -68,8 +68,25 @@ async function getServices() {
     console.error("Warning: failed to query pid usage:", e.message);
   }
 
+  // Tag system/protected processes
+  const PROTECTED_NAMES = new Set([
+    'svchost','lsass','csrss','wininit','winlogon','services','smss','system',
+    'registry','memory compression','antimalware service executable',
+    'spoolsv','dwm','fontdrvhost','sihost','taskhostw',
+    'searchindexer','searchhost','runtimebroker','securityhealthservice',
+    'mysqld','mongod','postgres','redis-server','httpd','nginx','sqlservr',
+    'ntoskrnl','audiodg','conhost','ctfmon','dllhost','msdtc',
+    'trustedinstaller','wmiprvse','msiexec','explorer'
+  ]);
+
+  for (const s of services) {
+    const nameLower = (s.name || '').toLowerCase().replace('.exe','');
+    s.protected = PROTECTED_NAMES.has(nameLower);
+  }
+
   return services;
 }
+
 
 async function parseServices(raw) {
   const services = {};

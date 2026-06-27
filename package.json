@@ -26,6 +26,7 @@
   },
   "build": {
     "appId": "com.portsentry.app",
+    "productName": "PortSentry",
     "win": {
       "target": [
         {
@@ -37,21 +38,28 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "icon.png"
+      "icon": "icon.ico",
+      "publisherName": "JOJIN JOHN",
+      "legalTrademarks": "© 2026 JOJIN JOHN. All rights reserved."
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
-      "shortcutName": "PortSentry"
+      "shortcutName": "PortSentry",
+      "uninstallDisplayName": "PortSentry - Port Monitor by JOJIN JOHN",
+      "license": "LICENSE",
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico"
     },
     "files": [
       "main.js",
       "server.js",
       "portsentry.html",
       "splash.html",
-      "icon.png"
+      "icon.png",
+      "icon.ico"
     ]
   }
 }
