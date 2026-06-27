@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortSentry - Modern Desktop Port Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --panel: rgba(17, 24, 39, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #5f7fff;
+      --primary-glow: rgba(95, 127, 255, 0.15);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.15);
+      --font-main: 'Plus Jakarta Sans', sans-serif;
+      --font-title: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(95, 127, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+      color: var(--text);
+      font-family: var(--font-main);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    header {
+      backdrop-filter: blur(12px);
+      background: rgba(11, 15, 25, 0.75);
+      border-bottom: 1px solid var(--border);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .logo-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .logo-text {
+      font-family: var(--font-title);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .btn-github {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      color: var(--text) !important;
+      transition: all 0.2s;
+    }
+
+    .btn-github:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .hero-section {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 9rem 2rem 4rem;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(95, 127, 255, 0.1);
+      border: 1px solid rgba(95, 127, 255, 0.2);
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 2rem;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .hero-badge:hover {
+      background: rgba(95, 127, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .hero-title {
+      font-family: var(--font-title);
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #fff 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto 2.5rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 4rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.8rem 1.8rem;
+      border-radius: 10px;
+      text-decoration: none;
+      box-shadow: 0 4px 20px var(--primary-glow);
+      transition: all 0.2s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(95, 127, 255, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.8rem 1.8rem;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .section-title {
+      font-family: var(--font-title);
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 3rem;
+      letter-spacing: -0.02em;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 6rem;
+    }
+
+    .feature-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 2.25rem 2rem;
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(95, 127, 255, 0.25);
+      box-shadow: 0 10px 30px rgba(11, 15, 25, 0.5);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(95, 127, 255, 0.1);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-title {
+      font-family: var(--font-title);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .docs-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3.5rem;
+      margin-bottom: 6rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .docs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .docs-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+    }
+
+    .docs-content h3 {
+      font-family: var(--font-title);
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .docs-content p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      font-size: 0.98rem;
+    }
+
+    .code-block {
+      background: rgba(5, 7, 12, 0.6);
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: #9cdcfe;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    .code-block span.comment {
+      color: #6a9955;
+    }
+
+    .code-block span.command {
+      color: #ce9178;
+    }
+
+    .author-card {
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto 6rem;
+      background: radial-gradient(circle at top right, rgba(95,127,255,0.06), transparent), var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+    }
+
+    .author-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0 auto 1rem;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .author-name {
+      font-family: var(--font-title);
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .author-title {
+      font-size: 0.9rem;
+      color: var(--primary);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .author-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .coffee-container {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo-container">
+        <img src="icon.png" alt="PortSentry" class="logo-img">
+        <span class="logo-text">PortSentry</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#setup">Setup</a></li>
+        <li><a href="https://github.com/jojin1709/PortSentry" class="btn-github">GitHub</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <section class="hero-section">
+    <a href="https://www.linkedin.com/in/jojin-john/" target="_blank" class="hero-badge">
+      <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.8v8.37h2.8v-4.67c0-.25.02-.5.1-.68a1.14 1.14 0 0 1 1-.77c.76 0 1 .56 1 1.39v4.73h2.8M6.65 8.37a1.62 1.62 0 0 0 1.62-1.62 1.62 1.62 0 0 0-1.62-1.62A1.63 1.63 0 0 0 5 6.75a1.63 1.63 0 0 0 1.65 1.62m1.4 10.13V10.13h-2.8v8.37h2.8z"/></svg>
+      Developed by JOJIN JOHN
+    </a>
+    <h1 class="hero-title">Secure Your Ports with PortSentry</h1>
+    <p class="hero-subtitle">A premium, responsive Windows desktop dashboard to monitor local services, inspect CPU & memory telemetry, and terminate entire process trees in one click.</p>
+    
+    <div class="hero-actions">
+      <a href="https://github.com/jojin1709/PortSentry/releases/download/v1.0.0/portsentry.1.0.0.exe" class="btn-primary">Download Portable App</a>
+      <a href="https://github.com/jojin1709/PortSentry" class="btn-secondary">View Repository</a>
+    </div>
+  </section>
+
+  <div class="container">
+    <section id="features">
+      <h2 class="section-title">Core Capabilities</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <h3 class="feature-title">Real-Time Discovery</h3>
+          <p class="feature-desc">Scans and groups active port listeners (Dev servers, Database services, local Web hosts) automatically with custom classification categories.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          <h3 class="feature-title">Process Tree Kill</h3>
+          <p class="feature-desc">Terminates the entire process tree on Windows. Sub-worker nodes (like Vite, Next.js, Webpack) are cleanly shut down, preventing locked ports.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9m-9.73 13a3 3 0 005.46 0"/></svg>
+          </div>
+          <h3 class="feature-title">System Alerts</h3>
+          <p class="feature-desc">Uses native system notifications to immediately alert you whenever a new local development environment or server launches.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+          <h3 class="feature-title">Minimize-to-Tray</h3>
+          <p class="feature-desc">Double-clicking or closing the window parks it quietly inside your system notification tray area, keeping active port status just a hover away.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="setup" class="docs-section">
+      <div class="docs-grid">
+        <div class="docs-content">
+          <h3>Quick Start Installation</h3>
+          <p>Get PortSentry up and running locally in less than a minute. Clone the codebase, install standard dependencies, and execute the boot script.</p>
+          
+          <div class="code-block">
+            <span class="comment"># 1. Clone repository</span><br>
+            <span class="command">git clone https://github.com/jojin1709/PortSentry.git</span><br>
+            <span class="command">cd PortSentry</span>
+          </div>
+
+          <div class="code-block">
+            <span class="comment"># 2. Install dependencies</span><br>
+            <span class="command">npm install</span>
+          </div>
+
+          <div class="code-block">
+            <span class="comment"># 3. Boot app locally</span><br>
+            <span class="command">npm start</span>
+          </div>
+        </div>
+
+        <div class="docs-content">
+          <h3>Packaging Portable Binary</h3>
+          <p>Package the application codebase into a single-file standalone installer `portsentry 1.0.0.exe` targeting 64-bit Windows architecture.</p>
+          
+          <div class="code-block">
+            <span class="comment"># Build stand-alone executable</span><br>
+            <span class="command">npm run build</span>
+          </div>
+          
+          <p>The builder output will be located in the newly created `dist/` directory.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="author-card">
+      <div class="author-avatar">JJ</div>
+      <h3 class="author-name">JOJIN JOHN</h3>
+      <div class="author-title">Lead Developer</div>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Creator of PortSentry, full-stack software engineer, and ethical hacker.</p>
+      
+      <div class="author-links">
+        <a href="https://www.linkedin.com/in/jojin-john/" target="_blank" class="btn-secondary" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem; font-size: 0.9rem;">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.8v8.37h2.8v-4.67c0-.25.02-.5.1-.68a1.14 1.14 0 0 1 1-.77c.76 0 1 .56 1 1.39v4.73h2.8M6.65 8.37a1.62 1.62 0 0 0 1.62-1.62 1.62 1.62 0 0 0-1.62-1.62A1.63 1.63 0 0 0 5 6.75a1.63 1.63 0 0 0 1.65 1.62m1.4 10.13V10.13h-2.8v8.37h2.8z"/></svg>
+          LinkedIn Profile
+        </a>
+      </div>
+
+      <div class="coffee-container">
+        <!-- Buy Me a Coffee Button Embed -->
+        <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="jojin1709" data-color="#FFDD00" data-emoji="🙂"  data-font="Cookie" data-text="Buy me a thanks" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 PortSentry by <a href="https://www.linkedin.com/in/jojin-john/" target="_blank">JOJIN JOHN</a>. Project released under the MIT License.</p>
+  </footer>
+
+  <!-- Buy Me a Coffee Widget Script -->
+  <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="jojin1709" data-description="Support me on Buy me a coffee!" data-message="" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+
+</body>
+</html>
