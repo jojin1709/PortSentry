@@ -9,9 +9,27 @@ let tray = null;
 let isQuitting = false;
 
 function createWindow() {
+  // Show splash window immediately
+  const splash = new BrowserWindow({
+    width: 380,
+    height: 280,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    resizable: false,
+    icon: path.join(__dirname, 'icon.png'),
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  });
+  splash.loadFile('splash.html');
+
+  // Create main dashboard window hidden
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 750,
+    show: false,
     icon: path.join(__dirname, 'icon.png'),
     webPreferences: {
       nodeIntegration: false,
@@ -23,6 +41,16 @@ function createWindow() {
 
   mainWindow.loadFile('portsentry.html');
 
+  // transition splash to main window
+  mainWindow.once('ready-to-show', () => {
+    setTimeout(() => {
+      if (splash && !splash.isDestroyed()) {
+        splash.destroy();
+      }
+      mainWindow.show();
+    }, 1200); // 1.2s delay for a premium startup transition feel
+  });
+
   // Handle external links
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
@@ -30,10 +58,20 @@ function createWindow() {
   });
 
   // Minimize to tray on close
+  let hasShownTrayAlert = false;
   mainWindow.on('close', (event) => {
     if (!isQuitting) {
       event.preventDefault();
       mainWindow.hide();
+      
+      if (!hasShownTrayAlert && tray) {
+        hasShownTrayAlert = true;
+        tray.displayBalloon({
+          iconType: 'info',
+          title: 'PortSentry minimized to System Tray',
+          content: 'PortSentry is still running in the background. Right-click the tray icon to quit.'
+        });
+      }
     }
     return false;
   });

@@ -565,12 +565,33 @@ function renderTable() {
     return;
   }
   empty.style.display = "none";
-  tbody.innerHTML = rows.map(s => {
+
+  const newRowPids = new Set(rows.map(r => r.pid));
+
+  // 1. Remove rows that are no longer present
+  Array.from(tbody.querySelectorAll("tr")).forEach(rowEl => {
+    const pidAttr = parseInt(rowEl.getAttribute("data-pid"));
+    if (!newRowPids.has(pidAttr)) {
+      rowEl.remove();
+    }
+  });
+
+  // 2. Insert or update existing rows without recreating them
+  rows.forEach(s => {
     const cat = categorize(s);
     const catLabel = {dev:"Dev",db:"Database",web:"Web",sys:"System",other:"Other"}[cat];
     const catClass = `cat-${cat}`;
     const isLocal = ["dev","web"].includes(cat);
-    return `<tr id="row-${s.pid}">
+    
+    let rowEl = document.getElementById(`row-${s.pid}`);
+    if (!rowEl) {
+      rowEl = document.createElement("tr");
+      rowEl.id = `row-${s.pid}`;
+      rowEl.setAttribute("data-pid", s.pid);
+      tbody.appendChild(rowEl);
+    }
+    
+    const rowHtml = `
       <td><span class="port-badge">${s.port}</span></td>
       <td>
         <div class="proc-name">${esc(s.name || "unknown")}</div>
@@ -600,8 +621,12 @@ function renderTable() {
           </button>
         </div>
       </td>
-    </tr>`;
-  }).join("");
+    `;
+    
+    if (rowEl.innerHTML !== rowHtml) {
+      rowEl.innerHTML = rowHtml;
+    }
+  });
 }
 
 function esc(s) {
@@ -654,14 +679,22 @@ async function killAll() {
   const rows = getFiltered();
   if (rows.length === 0) return toast("Nothing to kill", "error");
   if (!confirm(`Kill ${rows.length} process(es)?`)) return;
-  for (const s of rows) {
-    if (!s.pid) continue;
+  
+  // Kill all selected processes in parallel
+  const killPromises = rows.map(async (s) => {
+    if (!s.pid) return;
     try {
-      await fetch(`${API}/kill`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pid:s.pid})});
+      await fetch(`${API}/kill`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({pid:s.pid})
+      });
       killedPids.add(s.pid);
       killCount++;
     } catch {}
-  }
+  });
+  
+  await Promise.all(killPromises);
   updateStats();
   renderTable();
   toast(`Killed ${rows.length} process(es)`, "success");

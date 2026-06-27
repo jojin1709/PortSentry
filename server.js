@@ -22,7 +22,7 @@ async function getServices() {
       `lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null || ss -tlnp 2>/dev/null`
     );
   }
-  const services = parseServices(raw);
+  const services = await parseServices(raw);
 
   // Fetch CPU and Memory usage using pidusage
   let pidusage;
@@ -33,24 +33,26 @@ async function getServices() {
   }
 
   const pids = [...new Set(services.map(s => s.pid).filter(Boolean))];
-  const statsPromises = pids.map(async (pid) => {
+  let statsMap = {};
+  if (pids.length > 0) {
     try {
-      const stats = await pidusage(pid);
-      return { pid, stats };
+      // Query CPU & memory telemetry in a single optimized batch
+      const statsResults = await pidusage(pids);
+      if (statsResults) {
+        statsMap = statsResults;
+      }
     } catch (e) {
-      return { pid, stats: null };
-    }
-  });
-
-  try {
-    const statsResults = await Promise.all(statsPromises);
-    const statsMap = {};
-    for (const item of statsResults) {
-      if (item.stats) {
-        statsMap[item.pid] = item.stats;
+      // Fallback: query individually if batch fails
+      for (const pid of pids) {
+        try {
+          const stats = await pidusage(pid);
+          if (stats) statsMap[pid] = stats;
+        } catch (err) {}
       }
     }
+  }
 
+  try {
     for (const s of services) {
       const stats = statsMap[s.pid];
       if (stats) {
@@ -69,7 +71,7 @@ async function getServices() {
   return services;
 }
 
-function parseServices(raw) {
+async function parseServices(raw) {
   const services = {};
   const lines = raw.split("\n").filter(Boolean);
 
@@ -85,9 +87,10 @@ function parseServices(raw) {
     const names = {};
     let tasklist = "";
     try {
-      tasklist = require("child_process").execSync("tasklist /fo csv /nh", { timeout: 10000 }).toString();
+      // Run tasklist asynchronously to prevent event-loop block
+      tasklist = await runCmd("tasklist /fo csv /nh");
     } catch (e) {
-      console.error("Warning: tasklist query failed or timed out: " + e.message);
+      console.error("Warning: tasklist query failed: " + e.message);
     }
     for (const line of tasklist.split("\n")) {
       const m = line.match(/"([^"]+)","(\d+)"/);
@@ -135,12 +138,8 @@ function parseServices(raw) {
     for (const s of Object.values(services)) {
       if (s.pid && !s.cmd) {
         try {
-          const c = require("child_process")
-            .execSync(`ps -p ${s.pid} -o args= 2>/dev/null || cat /proc/${s.pid}/cmdline 2>/dev/null | tr '\\0' ' '`, { timeout: 2000 })
-            .toString()
-            .trim()
-            .slice(0, 120);
-          if (c) s.cmd = c;
+          const c = await runCmd(`ps -p ${s.pid} -o args= 2>/dev/null || cat /proc/${s.pid}/cmdline 2>/dev/null | tr '\\0' ' '`);
+          if (c) s.cmd = c.trim().slice(0, 120);
         } catch (_) {}
       }
     }
