@@ -63,4 +63,4 @@ Developed with ❤️ by **JOJIN JOHN**
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+This project is proprietary and confidential. All rights are reserved to **JOJIN JOHN**. See [LICENSE](LICENSE) for details.
