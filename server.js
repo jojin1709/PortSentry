@@ -150,19 +150,53 @@ async function parseServices(raw) {
     .sort((a, b) => a.port - b.port);
 }
 
-async function killProcess(pid) {
-  if (!pid) return { ok: false, msg: "No PID" };
+// Known Windows service names mapped to process names
+const WIN_SERVICES = {
+  mysqld: 'MySQL',
+  mongod: 'MongoDB',
+  postgres: 'postgresql',
+  redis: 'Redis',
+  httpd: 'Apache2',
+  nginx: 'nginx',
+  sqlservr: 'MSSQLSERVER',
+};
+
+async function killProcess(pid, processName) {
+  if (!pid) return { ok: false, msg: "No PID provided." };
+
   try {
     if (platform === "win32") {
+      // Try stopping as a Windows service first (for mysqld, mongod etc.)
+      const svcName = processName && WIN_SERVICES[processName.toLowerCase()];
+      if (svcName) {
+        try {
+          require("child_process").execSync(`net stop "${svcName}" /y`, { timeout: 5000 });
+          return { ok: true, msg: `Stopped service: ${svcName}` };
+        } catch (_) {
+          // Service stop failed, fall through to taskkill
+        }
+      }
       require("child_process").execSync(`taskkill /F /T /PID ${pid}`, { timeout: 3000 });
     } else {
       require("child_process").execSync(`kill -9 -${pid} 2>/dev/null || kill -9 ${pid}`, { timeout: 3000 });
     }
     return { ok: true, msg: `Killed process tree for PID ${pid}` };
   } catch (e) {
-    return { ok: false, msg: e.message };
+    const msg = e.message || '';
+    // Detect permission errors and return a clean, friendly message
+    if (msg.toLowerCase().includes('access is denied') ||
+        msg.toLowerCase().includes('access denied') ||
+        msg.includes('5')) {
+      return {
+        ok: false,
+        protected: true,
+        msg: `Cannot kill "${processName || 'process'}" — requires Administrator privileges. Run PortSentry as Administrator to terminate system services.`
+      };
+    }
+    return { ok: false, msg: `Failed to kill PID ${pid}: ${msg.split('\n')[0]}` };
   }
 }
+
 
 const server = http.createServer(async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -187,8 +221,8 @@ const server = http.createServer(async (req, res) => {
     let body = "";
     req.on("data", (d) => (body += d));
     req.on("end", async () => {
-      const { pid } = JSON.parse(body || "{}");
-      const result = await killProcess(pid);
+      const { pid, processName } = JSON.parse(body || "{}");
+      const result = await killProcess(pid, processName);
       res.setHeader("Content-Type", "application/json");
       res.writeHead(result.ok ? 200 : 400);
       res.end(JSON.stringify(result));
